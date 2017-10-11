@@ -15,22 +15,37 @@ how to use the page table and disk interfaces.
 #include <string.h>
 #include <errno.h>
 
+const char *global_alg;
 void page_fault_handler( struct page_table *pt, int page )
 {
 	printf("page fault on page #%d\n",page);
+	printf("%s\n", global_alg );
+  if (strcmp(global_alg,"rand") == 0){
+		printf("%s\n", "Este es el random :( " );
+
+	}
+	if (strcmp(global_alg,"fifo") == 0){
+
+	}
+	if (strcmp(global_alg,"custom") == 0){
+
+
+	}
+
 	exit(1);
 }
 
 int main( int argc, char *argv[] )
 {
 	if(argc!=5) {
-		/* Add 'random' replacement algorithm if the size of your group is 3 */
-		printf("use: virtmem <npages> <nframes> <lru|fifo> <sort|scan|focus>\n");
+		printf("use: virtmem <npages> <nframes> <rand|fifo|custom> <sort|scan|focus>\n");
 		return 1;
 	}
 
 	int npages = atoi(argv[1]);
 	int nframes = atoi(argv[2]);
+	global_alg = argv[3];
+
 	const char *program = argv[4];
 
 	struct disk *disk = disk_open("myvirtualdisk",npages);
@@ -46,6 +61,7 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
+
 	char *virtmem = page_table_get_virtmem(pt);
 
 	char *physmem = page_table_get_physmem(pt);
@@ -60,7 +76,7 @@ int main( int argc, char *argv[] )
 		focus_program(virtmem,npages*PAGE_SIZE);
 
 	} else {
-		fprintf(stderr,"unknown program: %s\n",argv[3]);
+		fprintf(stderr,"unknown program: %s\n",argv[4]);
 
 	}
 
