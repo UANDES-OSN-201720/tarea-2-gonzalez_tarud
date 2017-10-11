@@ -16,12 +16,22 @@ how to use the page table and disk interfaces.
 #include <errno.h>
 
 const char *global_alg;
+int *frame_table;
+int randm = 0;
+
 void page_fault_handler( struct page_table *pt, int page )
 {
 	printf("page fault on page #%d\n",page);
 	printf("%s\n", global_alg );
   if (strcmp(global_alg,"rand") == 0){
 		printf("%s\n", "Este es el random :( " );
+		char *physcal_mem = page_table_get_physmem(pt);
+
+		printf("%d\n", randm );
+
+
+
+
 
 	}
 	if (strcmp(global_alg,"fifo") == 0){
@@ -33,6 +43,7 @@ void page_fault_handler( struct page_table *pt, int page )
 	}
 
 	exit(1);
+	free(frame_table);
 }
 
 int main( int argc, char *argv[] )
@@ -45,6 +56,11 @@ int main( int argc, char *argv[] )
 	int npages = atoi(argv[1]);
 	int nframes = atoi(argv[2]);
 	global_alg = argv[3];
+	frame_table = malloc(nframes*sizeof(int));
+	srand48(time(NULL));
+  randm = lrand48()%nframes;
+	printf("%d\n", randm );
+
 
 	const char *program = argv[4];
 

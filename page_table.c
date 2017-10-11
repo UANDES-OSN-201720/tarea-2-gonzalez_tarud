@@ -181,5 +181,7 @@ char * page_table_get_virtmem( struct page_table *pt )
 
 char * page_table_get_physmem( struct page_table *pt )
 {
+
 	return pt->physmem;
+
 }
