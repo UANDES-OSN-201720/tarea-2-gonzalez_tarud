@@ -187,3 +187,9 @@ char * page_table_get_physmem( struct page_table *pt )
 	return pt->physmem;
 
 }
+
+int  page_table_get_bits( struct page_table *pt ,int page )
+{
+	int b = pt->page_bits[page];
+	return b;
+}
