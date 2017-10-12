@@ -17,18 +17,29 @@ how to use the page table and disk interfaces.
 
 const char *global_alg;
 int *frame_table;
+struct disk *disk;
 int randm = 0;
 
 void page_fault_handler( struct page_table *pt, int page )
 {
 	printf("page fault on page #%d\n",page);
 	printf("%s\n", global_alg );
+
   if (strcmp(global_alg,"rand") == 0){
-		printf("%s\n", "Este es el random :( " );
+		printf("%s\n", "Algoritmo Random" );
+
 		char *physcal_mem = page_table_get_physmem(pt);
+		//int number_frames = page_table_get_npages(pt);
 
+    disk_read(disk,page,&physcal_mem[randm]);
+		page_table_set_entry(pt,page,randm,PROT_READ);
+
+    for (size_t i = 0; i < 10; i++) {
+
+			printf("%d\n", &physcal_mem[i] );
+
+    }
 		printf("%d\n", randm );
-
 
 
 
@@ -56,15 +67,15 @@ int main( int argc, char *argv[] )
 	int npages = atoi(argv[1]);
 	int nframes = atoi(argv[2]);
 	global_alg = argv[3];
-	frame_table = malloc(nframes*sizeof(int));
+	frame_table = malloc(nframes*sizeof(int)); // Se llena de 0
 	srand48(time(NULL));
   randm = lrand48()%nframes;
-	printf("%d\n", randm );
+
 
 
 	const char *program = argv[4];
 
-	struct disk *disk = disk_open("myvirtualdisk",npages);
+	disk = disk_open("myvirtualdisk",npages);
 	if(!disk) {
 		fprintf(stderr,"couldn't create virtual disk: %s\n",strerror(errno));
 		return 1;
