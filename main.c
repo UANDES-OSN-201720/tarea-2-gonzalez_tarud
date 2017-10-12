@@ -20,27 +20,32 @@ int *frame_table;
 struct disk *disk;
 int randm = 0;
 
+
 void page_fault_handler( struct page_table *pt, int page )
 {
 	printf("page fault on page #%d\n",page);
-	printf("%s\n", global_alg );
-
+	//printf("%s\n", global_alg );
+  page = 2;
   if (strcmp(global_alg,"rand") == 0){
 		printf("%s\n", "Algoritmo Random" );
 
 		char *physcal_mem = page_table_get_physmem(pt);
-		//int number_frames = page_table_get_npages(pt);
+	  //int number_frames = page_table_get_nframes(pt);
 
+		page_table_set_entry(pt,page,randm,PROT_WRITE);
     disk_read(disk,page,&physcal_mem[randm]);
-		page_table_set_entry(pt,page,randm,PROT_READ);
+		frame_table[page] = randm;
 
+
+		page_table_print(pt);
+		//page_table_get_entry(pt,page,randm,PROT_WRITE);
 
     for (size_t i = 0; i < 10; i++) {
-
-			printf("%d\n", &physcal_mem[i] );
+			printf("%d\n",frame_table[i] );
+			//printf("%d\n", &physcal_mem[i] );
 
     }
-		printf("%d\n", randm );
+		//printf("%d\n", randm );
 
 
 
