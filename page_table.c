@@ -121,6 +121,8 @@ void page_table_set_entry( struct page_table *pt, int page, int frame, int bits 
 
 	pt->page_mapping[page] = frame;
 	pt->page_bits[page] = bits;
+	printf("Este es el set entry frame %d\n", frame);
+	printf("Este es el set entry bits %d\n", bits );
 
 	remap_file_pages(pt->virtmem+page*PAGE_SIZE,PAGE_SIZE,0,frame,0);
 	mprotect(pt->virtmem+page*PAGE_SIZE,PAGE_SIZE,bits);

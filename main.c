@@ -34,6 +34,7 @@ void page_fault_handler( struct page_table *pt, int page )
     disk_read(disk,page,&physcal_mem[randm]);
 		page_table_set_entry(pt,page,randm,PROT_READ);
 
+
     for (size_t i = 0; i < 10; i++) {
 
 			printf("%d\n", &physcal_mem[i] );
