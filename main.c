@@ -19,6 +19,7 @@ const char *global_alg;
 int *frame_table;
 struct disk *disk;
 int randm = 0;
+int nframes;
 
 //Variables para FIFO
 int indice = 0;
@@ -68,7 +69,7 @@ void page_fault_handler( struct page_table *pt, int page )
     disk_read(disk,page,&physcal_mem[indice]);
 		frame_table[page] = indice;
 		if (nframes == indice) {
-			indice = 0		
+			indice = 0;
 		}
 
 	}
@@ -89,7 +90,7 @@ int main( int argc, char *argv[] )
 	}
 
 	int npages = atoi(argv[1]);
-	int nframes = atoi(argv[2]);
+	nframes = atoi(argv[2]);
 	global_alg = argv[3];
 	frame_table = malloc(nframes*sizeof(int)); // Se llena de 0
 	srand48(time(NULL));
