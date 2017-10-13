@@ -40,16 +40,36 @@ void page_fault_handler( struct page_table *pt, int page )
 		frame_table[page] = randm;
 		printf("%d\n", page_table_get_bits(pt,page) );
 		page_table_print(pt);
-
+		printf("Random: %d\n", randm );
 		if (page_table_get_bits(pt,page) == 1){ // 1 = Read
 					printf("%s\n","Hola" );
 					page_table_set_entry(pt,page,randm,PROT_READ|PROT_WRITE);
 		}
+		for (size_t i = 0; i < nframes; i++) {
+			printf("%d\n",frame_table[i] );
+
+    }
+
 
 		page_table_print(pt);
 		//page_table_get_entry(pt,page,randm,PROT_WRITE);
+			page = 1;
+			 if (frame_table[randm] != -1) {
+				 		disk_write(disk,frame_table[randm],&physcal_mem[randm]);
+						disk_read(disk,page,&physcal_mem[randm]);
+						page_table_set_entry(pt,page,frame_table[randm],PROT_READ);
+						page_table_set_entry(pt,randm,0,0);
+						printf("%s\n", "Ultimo caso");
+						frame_table[randm] = -1;
+						frame_table[1] = page;
+				    page_table_print(pt);
 
-    for (size_t i = 0; i < 10; i++) {
+			 }
+
+
+
+
+    for (size_t i = 0; i < nframes; i++) {
 			printf("%d\n",frame_table[i] );
 
     }
@@ -106,6 +126,7 @@ int main( int argc, char *argv[] )
 	frame_table = malloc(nframes*sizeof(int)); // Se llena de 0 , lo cual no nos sirve por que hay marcos 0
 	srand48(time(NULL));
   randm = lrand48()%nframes;
+
  // LLenamos la tabal de marcos con -1 para evitar confusion si un marco esta libre o esta siendo usado por el marco 0
 	for (size_t i = 0; i < nframes; i++) {
 		 frame_table[i] = -1;
