@@ -20,6 +20,7 @@ int *frame_table;
 struct disk *disk;
 int randm = 0;
 int nframes;
+int *ran_list;
 // Variables para contar faltas de pag, acceso a disco, escritura en disco
 int count_page_fault = 0;
 int count_disk_read = 0;
@@ -28,6 +29,9 @@ int count_disk_write = 0;
 //Variables para FIFO
 int indice = 0;
 int fifo_array = 0;
+
+//Variables custom
+int pos = 0;
 
 
 void page_fault_handler( struct page_table *pt, int page )
@@ -60,7 +64,7 @@ void page_fault_handler( struct page_table *pt, int page )
 		page_table_print(pt);
 
 
-			//page = 1;
+			page = 1;
 			// Si la pagina elegida accede a un marco ya ocupado , hay que escribir en disco y hacer el swap
 			 if (frame_table[randm] != -1) {
 				 		disk_write(disk,frame_table[randm],&physcal_mem[randm]);
@@ -72,13 +76,14 @@ void page_fault_handler( struct page_table *pt, int page )
 						count_disk_write++;
 						printf("%s\n", "Ultimo caso");
 						frame_table[randm] = -1;
-						frame_table[1] = page;
+						frame_table[page] = page;
 				    page_table_print(pt);
 			 }
 
     for (size_t i = 0; i < nframes; i++) { // Imprime tabla de marcos
 			printf("%d\n",frame_table[i] );
     }
+
 	}
 
 	if (strcmp(global_alg,"fifo") == 0){
@@ -111,15 +116,29 @@ void page_fault_handler( struct page_table *pt, int page )
 
 	}
 	if (strcmp(global_alg,"custom") == 0){
-		printf("%s\n", "Algoritmo Custom" );
+		printf("%s\n", "Algoritmo Custom");
     // Que primero revise los pares y despues los impares?
-		// Esta el LRU , pero hay que revisar que frames son los menos usados , peluo
-		// Que sea un numero randon al comienzo y de ahi avance y/o disminuya en 1.
+		// Que revise los de RW , despues lo R y despues los E
+		if(page_table_get_bits(pt,page) == 3){// 3 = RW
+				pos = frame_table[page];
 
+		}
+		else if (page_table_get_bits(pt,page) == 2) {  // 2 = Write
+
+		}
+		else if (page_table_get_bits(pt,page) == 1) {  // 1 = Read
+
+		}
+		else { // Si esta libre
+
+		}
 
 	}
+	printf("Faltas de pagina : %d\n", count_page_fault);
+	printf("Lecturas a disco : %d\n", count_disk_read );
+	printf("Escrituras en disco : %d\n", count_disk_write);
   free(frame_table);
-	exit(1);
+  exit(1);
 
 }
 
@@ -129,6 +148,7 @@ int main( int argc, char *argv[] )
 		printf("use: virtmem <npages> <nframes> <rand|fifo|custom> <sort|scan|focus>\n");
 		return 1;
 	}
+
 
 	int npages = atoi(argv[1]);
 	nframes = atoi(argv[2]);
@@ -167,6 +187,7 @@ int main( int argc, char *argv[] )
 	if(!strcmp(program,"sort")) {
 		sort_program(virtmem,npages*PAGE_SIZE);
 
+
 	} else if(!strcmp(program,"scan")) {
 		scan_program(virtmem,npages*PAGE_SIZE);
 
@@ -177,9 +198,10 @@ int main( int argc, char *argv[] )
 		fprintf(stderr,"unknown program: %s\n",argv[4]);
 
 	}
-	printf("Faltas de pagina : %d\n", count_page_fault);
-	printf("Lecturas a disco : %d\n", count_disk_read );
-	printf("Escrituras en disco : %d\n", count_disk_write);
+
+
+
+
 
 	page_table_delete(pt);
 	disk_close(disk);
