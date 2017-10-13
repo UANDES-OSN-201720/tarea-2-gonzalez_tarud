@@ -20,16 +20,20 @@ int *frame_table;
 struct disk *disk;
 int randm = 0;
 
+//Variables para FIFO
+int indice = 0;
+int fifo_array = 0;
+
 
 void page_fault_handler( struct page_table *pt, int page )
 {
-	printf("page fault on page #%d\n",page);
-
+	//printf("page fault on page #%d\n",page);
+	char *physcal_mem = page_table_get_physmem(pt);
 
   if (strcmp(global_alg,"rand") == 0){
 		printf("%s\n", "Algoritmo Random" );
 
-		char *physcal_mem = page_table_get_physmem(pt);
+
 	  //int number_frames = page_table_get_nframes(pt);
 
 
@@ -38,7 +42,7 @@ void page_fault_handler( struct page_table *pt, int page )
 		frame_table[page] = randm;
 		printf("%d\n", page_table_get_bits(pt,page) );
 		page_table_print(pt);
-		
+
 		if (page_table_get_bits(pt,page) == 1){ // 1 = Read
 					printf("%s\n","Hola" );
 					page_table_set_entry(pt,page,randm,PROT_READ|PROT_WRITE);
@@ -59,6 +63,13 @@ void page_fault_handler( struct page_table *pt, int page )
 
 	}
 	if (strcmp(global_alg,"fifo") == 0){
+		printf("%s\n", "Algoritmo FIFO" );
+		page_table_set_entry(pt,page,indice,PROT_READ);
+    disk_read(disk,page,&physcal_mem[indice]);
+		frame_table[page] = indice;
+		if (nframes == indice) {
+			indice = 0		
+		}
 
 	}
 	if (strcmp(global_alg,"custom") == 0){
