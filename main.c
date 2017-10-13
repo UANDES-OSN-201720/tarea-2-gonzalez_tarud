@@ -88,32 +88,55 @@ void page_fault_handler( struct page_table *pt, int page )
 
 	if (strcmp(global_alg,"fifo") == 0){
 		printf("%s\n", "Algoritmo FIFO" );
-		page_table_set_entry(pt,page,indice,PROT_READ);
-    disk_read(disk,page,&physcal_mem[indice]);
-		frame_table[page] = indice;
-		page++;
-		indice++;
 
-		page_table_set_entry(pt,page,indice,PROT_READ);
-    disk_read(disk,page,&physcal_mem[indice]);
-		frame_table[page] = indice;
-		page_table_print(pt);
-		printf("NFrames: %d\n\n", nframes);
-		indice++;
-		for (size_t i = 0; i < 10; i++) {
+		for (size_t i = 0; i < nframes; i++) {
 			printf("%d\n",frame_table[i] );
 
 		}
+		page_table_set_entry(pt,page,indice,PROT_READ);
+		disk_read(disk,page,&physcal_mem[indice]);
+		frame_table[page] = indice;
+		count_page_fault++;
+		count_disk_read++;
+		page_table_print(pt);
+
+
+		for (size_t i = 0; i < nframes; i++) {
+			printf("%d\n",frame_table[i] );
+			count_page_fault++;
+
+		}
 		if (page_table_get_bits(pt,page) == 1){ // 1 = Read
-					printf("%s\n","Hola" );
 					page_table_set_entry(pt,page,indice,PROT_READ|PROT_WRITE);
+
+		}
+		page = 1;
+		if (frame_table[indice] != -1) {
+			disk_write(disk,frame_table[indice],&physcal_mem[indice]);
+			disk_read(disk,page,&physcal_mem[indice]);
+			page_table_set_entry(pt,page,frame_table[indice],PROT_READ);
+			page_table_set_entry(pt,indice,0,0);
+
+			count_page_fault++;
+			count_disk_read++;
+			count_disk_write++;
+			printf("%s\n", "Ultimo caso");
+			frame_table[indice] = -1;
+			frame_table[page] = page;
+			page_table_print(pt);
+
+		}
+		indice++;
+
+		for (size_t i = 0; i < nframes; i++) {
+			printf("%d\n",frame_table[i] );
+
 		}
 
 		if (nframes == indice) {
-			printf("%s\n", "hola");
+
 			indice = 0;
 		}
-
 	}
 	if (strcmp(global_alg,"custom") == 0){
 		printf("%s\n", "Algoritmo Custom");
