@@ -68,7 +68,20 @@ void page_fault_handler( struct page_table *pt, int page )
 		page_table_set_entry(pt,page,indice,PROT_READ);
     disk_read(disk,page,&physcal_mem[indice]);
 		frame_table[page] = indice;
+		page++;
+		indice++;
+		page_table_set_entry(pt,page,indice,PROT_READ);
+    disk_read(disk,page,&physcal_mem[indice]);
+		frame_table[page] = indice;
+		page_table_print(pt);
+		printf("NFrames: %d\n\n", nframes);
+		for (size_t i = 0; i < 10; i++) {
+			printf("%d\n",frame_table[i] );
+
+
+		}
 		if (nframes == indice) {
+			printf("%s\n", "hola");
 			indice = 0;
 		}
 
