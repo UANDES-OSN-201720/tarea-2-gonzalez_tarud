@@ -33,10 +33,7 @@ void page_fault_handler( struct page_table *pt, int page )
 
   if (strcmp(global_alg,"rand") == 0){
 		printf("%s\n", "Algoritmo Random" );
-
-
 	  //int number_frames = page_table_get_nframes(pt);
-
 
 		page_table_set_entry(pt,page,randm,PROT_READ);
     disk_read(disk,page,&physcal_mem[randm]);
@@ -55,14 +52,9 @@ void page_fault_handler( struct page_table *pt, int page )
     for (size_t i = 0; i < 10; i++) {
 			printf("%d\n",frame_table[i] );
 
-
     }
-		//printf("%d\n", randm );
-
-
-
-
 	}
+
 	if (strcmp(global_alg,"fifo") == 0){
 		printf("%s\n", "Algoritmo FIFO" );
 		page_table_set_entry(pt,page,indice,PROT_READ);
@@ -70,16 +62,22 @@ void page_fault_handler( struct page_table *pt, int page )
 		frame_table[page] = indice;
 		page++;
 		indice++;
+
 		page_table_set_entry(pt,page,indice,PROT_READ);
     disk_read(disk,page,&physcal_mem[indice]);
 		frame_table[page] = indice;
 		page_table_print(pt);
 		printf("NFrames: %d\n\n", nframes);
+		indice++;
 		for (size_t i = 0; i < 10; i++) {
 			printf("%d\n",frame_table[i] );
 
-
 		}
+		if (page_table_get_bits(pt,page) == 1){ // 1 = Read
+					printf("%s\n","Hola" );
+					page_table_set_entry(pt,page,indice,PROT_READ|PROT_WRITE);
+		}
+
 		if (nframes == indice) {
 			printf("%s\n", "hola");
 			indice = 0;
@@ -90,9 +88,9 @@ void page_fault_handler( struct page_table *pt, int page )
 
 
 	}
-
+  free(frame_table);
 	exit(1);
-	free(frame_table);
+
 }
 
 int main( int argc, char *argv[] )
@@ -105,9 +103,13 @@ int main( int argc, char *argv[] )
 	int npages = atoi(argv[1]);
 	nframes = atoi(argv[2]);
 	global_alg = argv[3];
-	frame_table = malloc(nframes*sizeof(int)); // Se llena de 0
+	frame_table = malloc(nframes*sizeof(int)); // Se llena de 0 , lo cual no nos sirve por que hay marcos 0
 	srand48(time(NULL));
   randm = lrand48()%nframes;
+ // LLenamos la tabal de marcos con -1 para evitar confusion si un marco esta libre o esta siendo usado por el marco 0
+	for (size_t i = 0; i < nframes; i++) {
+		 frame_table[i] = -1;
+	}
 
 
 
