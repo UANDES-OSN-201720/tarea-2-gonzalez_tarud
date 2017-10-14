@@ -39,16 +39,19 @@ void page_fault_handler( struct page_table *pt, int page )
 
 	char *physcal_mem = page_table_get_physmem(pt);
 
+
+
   if (strcmp(global_alg,"rand") == 0){
 		printf("%s\n", "Algoritmo Random" );
 		printf("Random: %d\n", randm );
+
 	  //int number_frames = page_table_get_nframes(pt);
 		page_table_set_entry(pt,page,randm,PROT_READ);
     disk_read(disk,page,&physcal_mem[randm]);
 		frame_table[page] = randm;
 		count_page_fault++;
 		count_disk_read++;
-		//printf("%d\n", page_table_get_bits(pt,page) );
+
 		page_table_print(pt);
 
     // Caso donde se intenta escribir en una pagina con bit de lectura.
@@ -58,13 +61,12 @@ void page_fault_handler( struct page_table *pt, int page )
 		}
 
 		for (size_t i = 0; i < nframes; i++) {  // Imprime tabla de marcos
-			printf("%d\n",frame_table[i] );
+			//printf("%d\n",frame_table[i] );
     }
 
 		page_table_print(pt);
 
-
-			page = 1;
+			//page = 1;  // Para probar bien la escritura descomentar
 			// Si la pagina elegida accede a un marco ya ocupado , hay que escribir en disco y hacer el swap
 			 if (frame_table[randm] != -1) {
 				 		disk_write(disk,frame_table[randm],&physcal_mem[randm]);
@@ -79,12 +81,13 @@ void page_fault_handler( struct page_table *pt, int page )
 						frame_table[page] = page;
 				    page_table_print(pt);
 			 }
-
+	}
     for (size_t i = 0; i < nframes; i++) { // Imprime tabla de marcos
-			printf("%d\n",frame_table[i] );
+			//printf("%d\n",frame_table[i] );
     }
 
-	}
+
+
 
 	if (strcmp(global_alg,"fifo") == 0){
 		printf("%s\n", "Algoritmo FIFO" );
@@ -102,21 +105,20 @@ void page_fault_handler( struct page_table *pt, int page )
 
 
 		for (size_t i = 0; i < nframes; i++) {
-			printf("%d\n",frame_table[i] );
-			count_page_fault++;
+			//printf("%d\n",frame_table[i] );
+
 
 		}
 		if (page_table_get_bits(pt,page) == 1){ // 1 = Read
 					page_table_set_entry(pt,page,indice,PROT_READ|PROT_WRITE);
-
+					count_page_fault++;
 		}
-		page = 1;
+		//page = 1; // Para probar bien la escritura descomentar
 		if (frame_table[indice] != -1) {
 			disk_write(disk,frame_table[indice],&physcal_mem[indice]);
 			disk_read(disk,page,&physcal_mem[indice]);
 			page_table_set_entry(pt,page,frame_table[indice],PROT_READ);
 			page_table_set_entry(pt,indice,0,0);
-
 			count_page_fault++;
 			count_disk_read++;
 			count_disk_write++;
@@ -129,7 +131,7 @@ void page_fault_handler( struct page_table *pt, int page )
 		indice++;
 
 		for (size_t i = 0; i < nframes; i++) {
-			printf("%d\n",frame_table[i] );
+			//printf("%d\n",frame_table[i] );
 
 		}
 
@@ -140,21 +142,66 @@ void page_fault_handler( struct page_table *pt, int page )
 	}
 	if (strcmp(global_alg,"custom") == 0){
 		printf("%s\n", "Algoritmo Custom");
-    // Que primero revise los pares y despues los impares?
-		// Que revise los de RW , despues lo R y despues los E
+
+		// Revisa los de RW , despues lo R y despues los E
 		if(page_table_get_bits(pt,page) == 3){// 3 = RW
 				pos = frame_table[page];
+				page_table_set_entry(pt,page,pos,PROT_READ);
+		    disk_read(disk,page,&physcal_mem[pos]);
+				frame_table[page] = pos;
+				count_page_fault++;
+				count_disk_read++;
+
+				page_table_print(pt);
 
 		}
 		else if (page_table_get_bits(pt,page) == 2) {  // 2 = Write
+			pos = frame_table[page];
+			page_table_set_entry(pt,page,pos,PROT_READ);
+			disk_read(disk,page,&physcal_mem[pos]);
+			frame_table[page] = pos;
+			count_page_fault++;
+			count_disk_read++;
+
+			page_table_print(pt);
 
 		}
 		else if (page_table_get_bits(pt,page) == 1) {  // 1 = Read
+			pos = frame_table[page];
+			page_table_set_entry(pt,page,pos,PROT_READ);
+			disk_read(disk,page,&physcal_mem[pos]);
+			frame_table[page] = pos;
+			count_page_fault++;
+			count_disk_read++;
 
+			page_table_print(pt);
 		}
 		else { // Si esta libre
+			pos = page;
+			page_table_set_entry(pt,page,pos,PROT_READ);
+			disk_read(disk,page,&physcal_mem[pos]);
+			frame_table[page] = pos;
+			count_page_fault++;
+			count_disk_read++;
 
+			page_table_print(pt);
 		}
+		page = 1;
+			if (frame_table[pos] != -1) {
+					 disk_write(disk,frame_table[pos],&physcal_mem[pos]);
+					 disk_read(disk,page,&physcal_mem[pos]);
+					 page_table_set_entry(pt,page,frame_table[pos],PROT_READ);
+					 page_table_set_entry(pt,pos,0,0);
+					 count_page_fault++;
+					 count_disk_read++;
+					 count_disk_write++;
+					 printf("%s\n", "Ultimo caso");
+					 frame_table[pos] = -1;
+					 frame_table[page] = page;
+					 page_table_print(pt);
+			}
+
+
 
 	}
 	printf("Faltas de pagina : %d\n", count_page_fault);
@@ -180,10 +227,6 @@ int main( int argc, char *argv[] )
 	srand48(time(NULL));
   randm = lrand48()%nframes;
 
- // LLenamos la tabla de marcos con -1 para evitar confusion si un marco esta libre o esta siendo usado por el marco 0
-	for (size_t i = 0; i < nframes; i++) {
-		 frame_table[i] = -1;
-	}
 
 
 
@@ -201,6 +244,12 @@ int main( int argc, char *argv[] )
 		fprintf(stderr,"couldn't create page table: %s\n",strerror(errno));
 		return 1;
 	}
+
+	// LLenamos la tabla de marcos con -1 para evitar confusion si un marco esta libre o esta siendo usado por el marco 0
+ 	for (int i = 0; i < nframes; i++) {
+ 		 frame_table[i] = -1;
+ 	}
+
 
 
 	char *virtmem = page_table_get_virtmem(pt);
